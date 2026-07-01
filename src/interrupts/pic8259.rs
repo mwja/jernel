@@ -20,6 +20,7 @@ pub fn init_pics() {
 #[repr(u8)]
 pub enum InterruptIndex {
     Timer = PIC_1_OFFSET,
+    Keyboard,
 }
 
 impl InterruptIndex {
@@ -34,11 +35,40 @@ impl InterruptIndex {
 
 pub fn load_to_idt(idt: &mut x86_64::structures::idt::InterruptDescriptorTable) {
     idt[InterruptIndex::Timer.as_usize()].set_handler_fn(timer_interrupt_handler);
+    idt[InterruptIndex::Keyboard.as_usize()].set_handler_fn(keyboard_interrupt_handler);
 }
 
 extern "x86-interrupt" fn timer_interrupt_handler(_stack_frame: InterruptStackFrame) {
-    print!(".");
+    // Ignore timer
     send_eoi(InterruptIndex::Timer);
+}
+
+static PIC_DATA_PORT: u16 = 0x60;
+extern "x86-interrupt" fn keyboard_interrupt_handler(_stack_frame: InterruptStackFrame) {
+    use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
+    use spin::Mutex;
+    use x86_64::instructions::port::Port;
+
+    static KEYBOARD: Mutex<Keyboard<layouts::Us104Key, ScancodeSet1>> = Mutex::new(Keyboard::new(
+        ScancodeSet1::new(),
+        layouts::Us104Key,
+        HandleControl::Ignore,
+    ));
+
+    let mut keyboard = KEYBOARD.lock();
+    let mut port = Port::new(PIC_DATA_PORT);
+
+    // We must read the scancode so the controller even accepts our end-of-interrupt.
+    let scancode: u8 = unsafe { port.read() };
+    if let Ok(Some(key_event)) = keyboard.add_byte(scancode) && let Some(key) = keyboard.process_keyevent(key_event) {
+        match key {
+            DecodedKey::Unicode(character) => print!("{}", character),
+            // DecodedKey::RawKey(key) => print!("{:?}", key),
+            _ => {}
+        }
+    }
+
+    send_eoi(InterruptIndex::Keyboard);
 }
 
 /// Send end of interrupt signal

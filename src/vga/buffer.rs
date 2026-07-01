@@ -1,3 +1,6 @@
+use core::fmt;
+use lazy_static::lazy_static;
+use spin::Mutex;
 use volatile::Volatile;
 
 #[allow(dead_code)]
@@ -107,8 +110,6 @@ impl Writer {
     }
 }
 
-use core::fmt;
-
 impl fmt::Write for Writer {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         self.write_string(s);
@@ -116,15 +117,12 @@ impl fmt::Write for Writer {
     }
 }
 
-use lazy_static::lazy_static;
-
-use spin::Mutex;
-
+static VGA_BUFFER_ADDR: usize = 0xb8000;
 lazy_static! {
     pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
         column_position: 0,
         color_code: ColorCode::new(Color::Yellow, Color::Black),
-        buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
+        buffer: unsafe { &mut *(VGA_BUFFER_ADDR as *mut Buffer) },
     });
 }
 
