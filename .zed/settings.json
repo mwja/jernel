@@ -1,0 +1,29 @@
+{
+    "languages": {
+        "Rust": {
+            "format_on_save": "on",
+            "formatter": {
+                "external": {
+                    "command": "rustfmt",
+                    "arguments": ["+nightly"]
+                }
+            }
+        }
+    },
+
+    "lsp": {
+        "rust-analyzer": {
+            "initialization_options": {
+                "check": {
+                    "command": "clippy"
+                },
+                "cargo": {
+                    "extraArgs": ["-Zjson-target-spec"],
+                    "extraEnv": {
+                        "CARGO_UNSTABLE_JSON_TARGET_SPEC": "true"
+                    }
+                }
+            }
+        }
+    }
+}
