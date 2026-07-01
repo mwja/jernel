@@ -4,36 +4,47 @@
 #![test_runner(jernel::test_runner)]
 #![reexport_test_harness_main = "test_main"]
 
+use bootloader::{entry_point, BootInfo};
 use core::panic::PanicInfo;
 use jernel::println;
 
-#[unsafe(no_mangle)]
-pub extern "C" fn _start() -> ! {
+entry_point!(kernel_main);
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
     jernel::init();
 
     #[cfg(not(test))]
-    main();
+    main(boot_info);
     #[cfg(test)]
     test_main();
 
     jernel::hlt_loop();
 }
 
-fn main() {
+fn main(boot_info: &'static BootInfo) {
+    use x86_64::VirtAddr;
     println!("Hello, World!");
-    use x86_64::registers::control::Cr3;
 
-    let (level_4_page_table, _) = Cr3::read();
-    println!(
-        "Level 4 page table at: {:?}",
-        level_4_page_table.start_address()
-    );
-}
+    use x86_64::structures::paging::Translate;
+    let phys_mem_offset = VirtAddr::new(boot_info.physical_memory_offset);
+    let mapper = unsafe { jernel::memory::init(phys_mem_offset) };
 
-#[cfg(test)]
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
-    jernel::test_panic_handler(info)
+    let addresses = [
+        // the identity-mapped vga buffer page
+        0xb8000,
+        // some code page
+        0x201008,
+        // some stack page
+        0x0100_0020_1a10,
+        // virtual address mapped to physical address 0
+        boot_info.physical_memory_offset,
+    ];
+
+    for &address in &addresses {
+        let virt = VirtAddr::new(address);
+        // new: use the `mapper.translate_addr` method
+        let phys = mapper.translate_addr(virt);
+        println!("{:?} -> {:?}", virt, phys);
+    }
 }
 
 #[cfg(not(test))]
@@ -41,4 +52,10 @@ fn panic(info: &PanicInfo) -> ! {
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
     jernel::hlt_loop();
+}
+
+#[cfg(test)]
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    jernel::test_panic_handler(info)
 }
