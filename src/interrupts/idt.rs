@@ -1,4 +1,4 @@
-use crate::{gdt, println};
+use crate::{gdt, interrupts::pic8259::load_to_idt, println};
 use lazy_static::lazy_static;
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 
@@ -13,6 +13,8 @@ lazy_static! {
                 .set_handler_fn(double_fault_handler)
                 .set_stack_index(gdt::DOUBLE_FAULT_IST_INDEX);
         }
+
+        load_to_idt(&mut idt);
         idt
     };
 }

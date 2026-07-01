@@ -66,5 +66,7 @@ pub fn hlt_loop() -> ! {
 
 pub fn init() {
     gdt::init();
-    interrupts::init_idt();
+    interrupts::idt::init_idt();
+    interrupts::pic8259::init_pics();
+    x86_64::instructions::interrupts::enable();
 }
