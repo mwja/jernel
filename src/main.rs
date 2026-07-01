@@ -21,7 +21,13 @@ pub extern "C" fn _start() -> ! {
 
 fn main() {
     println!("Hello, World!");
-    println!("It did not crash!");
+    use x86_64::registers::control::Cr3;
+
+    let (level_4_page_table, _) = Cr3::read();
+    println!(
+        "Level 4 page table at: {:?}",
+        level_4_page_table.start_address()
+    );
 }
 
 #[cfg(test)]
