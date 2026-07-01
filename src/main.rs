@@ -16,15 +16,11 @@ pub extern "C" fn _start() -> ! {
     #[cfg(test)]
     test_main();
 
-    loop {}
+    jernel::hlt_loop();
 }
 
 fn main() {
     println!("Hello, World!");
-    fn stack_overflow() {
-        stack_overflow(); // for each recursion, the return address is pushed
-    }
-    stack_overflow();
     println!("It did not crash!");
 }
 
@@ -38,5 +34,5 @@ fn panic(info: &PanicInfo) -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     println!("{}", info);
-    loop {}
+    jernel::hlt_loop();
 }

@@ -5,14 +5,17 @@
 #![reexport_test_harness_main = "test_main"]
 
 use core::panic::PanicInfo;
-use jernel::{exit_qemu, serial_print, serial_println, QemuExitCode};
+use jernel::{
+    qemu::{exit_qemu, QemuExitCode},
+    serial_print, serial_println,
+};
 
 #[unsafe(no_mangle)]
 pub extern "C" fn _start() -> ! {
     should_fail();
     serial_println!("[test did not panic]");
     exit_qemu(QemuExitCode::Failed);
-    loop {}
+    jernel::hlt_loop();
 }
 
 fn should_fail() {
@@ -24,5 +27,5 @@ fn should_fail() {
 fn panic(_info: &PanicInfo) -> ! {
     serial_println!("[ok]");
     exit_qemu(QemuExitCode::Success);
-    loop {}
+    jernel::hlt_loop();
 }
