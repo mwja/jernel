@@ -21,7 +21,10 @@ pub extern "C" fn _start() -> ! {
 
 fn main() {
     println!("Hello, World!");
-    x86_64::instructions::interrupts::int3();
+    fn stack_overflow() {
+        stack_overflow(); // for each recursion, the return address is pushed
+    }
+    stack_overflow();
     println!("It did not crash!");
 }
 
