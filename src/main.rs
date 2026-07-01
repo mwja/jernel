@@ -7,19 +7,22 @@
 use core::panic::PanicInfo;
 use jernel::println;
 
-#[cfg(test)]
 #[unsafe(no_mangle)]
 pub extern "C" fn _start() -> ! {
+    jernel::init();
+
+    #[cfg(not(test))]
+    main();
     #[cfg(test)]
     test_main();
+
     loop {}
 }
 
-#[cfg(not(test))]
-#[unsafe(no_mangle)]
-pub extern "C" fn _start() -> ! {
+fn main() {
     println!("Hello, World!");
-    loop {}
+    x86_64::instructions::interrupts::int3();
+    println!("It did not crash!");
 }
 
 #[cfg(test)]
