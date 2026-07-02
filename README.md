@@ -5,6 +5,8 @@ Following the tutorial on writing an OS in Rust
 ### Setup
 
 ```sh
+sudo apt update
+sudo apt install qemu-system-x86
 cargo install bootimage
 rustup component add llvm-tools-preview
 ```

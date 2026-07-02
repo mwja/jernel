@@ -1,3 +1,6 @@
+pub mod frame;
+pub mod mapping;
+
 use x86_64::structures::paging::OffsetPageTable;
 use x86_64::{structures::paging::PageTable, PhysAddr, VirtAddr};
 
