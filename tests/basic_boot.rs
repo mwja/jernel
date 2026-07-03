@@ -18,7 +18,7 @@ fn panic(info: &PanicInfo) -> ! {
 pub extern "C" fn _start() -> ! {
     test_main();
 
-    jernel::hlt_loop();
+    loop {}
 }
 
 #[test_case]

@@ -30,7 +30,7 @@ extern "x86-interrupt" fn test_double_fault_handler(
 ) -> ! {
     serial_println!("[ok]");
     exit_qemu(QemuExitCode::Success);
-    jernel::hlt_loop();
+    loop {}
 }
 
 pub fn init_test_idt() {
